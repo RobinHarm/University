@@ -18,6 +18,8 @@ namespace University
 
             var app = builder.Build();
 
+            CreateDbIfNotExists(app);
+
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
@@ -38,6 +40,23 @@ namespace University
                 .WithStaticAssets();
 
             app.Run();
+        }
+        private static void CreateDbIfNotExists(IHost host)
+        { 
+         using(var scope = host.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                    try
+                {
+                    var context = services.GetRequiredService<UniversityContext>();
+                    Dbinitializer.Initialize(context);
+                }
+                catch(Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occured creating the DB.");
+                }
+            }
         }
     }
 }
